@@ -1,30 +1,20 @@
-SELECT *
-FROM portafolioprojectcovid..covidD
 
-
---SELECT *
---FROM portafolioprojectcovid..covidV
---ORDER BY 5 DESC
-
---Data that i'll use
-
-SELECT location, date, total_deaths, new_cases, population 
-FROM portafolioprojectcovid..covidD
-ORDER BY 1,2
 
 -- Total cases vs Deaths in COLOMBIA
 
 SELECT  location, date, total_deaths,  total_cases ,population,(total_deaths/total_cases)*100 as Deathpercentage
 FROM portafolioprojectcovid..covidD
 WHERE location = 'Colombia'
-ORDER BY  2 DESC,3
+and  date ='2022-10-17 00:00:00.000'
+ORDER BY  2 DESC
 
 --Cases vs population
 
 SELECT  location, date,population, total_cases ,(total_cases/population)*100 as Cases_pertcentage
 FROM portafolioprojectcovid..covidD
 WHERE location = 'Colombia'
-ORDER BY  1, 2
+and  date ='2022-10-17 00:00:00.000'
+ORDER BY   2 DESC
 
 -- Countries with Highest Infection Rate compared to Population
 
@@ -34,11 +24,12 @@ Group by Location, Population
 order by PercentPopulationInfected desc
 
 
--- Countries with Highest Death Count per Population
+--  Highest Death Count per Continent
 
-Select Location, MAX(cast(Total_deaths as bigint)) as TotalDeathCount
+Select Location, SUM(cast(Total_deaths as bigint)) as TotalDeathCount
 From portafolioprojectcovid..covidD
 Where continent is not null 
+and location  in ( 'Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America')
 Group by Location
 order by TotalDeathCount desc
 
@@ -58,13 +49,40 @@ where continent is not null
 order by 1,2
 
 -- Total Population vs Vaccinations
--- Shows Percentage of Population that has recieved at least one Covid Vaccine
 
-Select d.continent, d.location, d.date, d.population, v.new_vaccinations
-, SUM(CAST( v.new_vaccinations as float))  OVER ( Partition by d.location Order by d.location, d.date) AS Roollingpeoplevac
-From portafolioprojectcovid..covidD d 
-Join portafolioprojectcovid..covidV v 
-On d.location = v.location
-and d.date= v.date
-where d.continent is not null 
-order by 2,3 DESC
+--MAX of Population that has recieved at least one Covid Vaccine per continent
+
+
+Select  d.location, d.date, d.population
+, MAX(v.total_vaccinations) as RollingPeopleVaccinated
+From  portafolioprojectcovid..covidD d 
+Join portafolioprojectcovid..covidV v
+	On d.location = v.location
+	and d.date = v.date
+where  d.date ='2022-10-17 00:00:00.000'
+and d.location  in ( 'Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America','World')
+group by d.continent, d.location, d.date, d.population
+order by 1,2,3 DESC
+
+-- Shows Percentage of Population that has recieved at least one Covid Vaccine in Colombia
+
+With PopvsVac (Continent, Location, Date, Population, New_Vaccinations, RollingPeopleVaccinated)
+as
+(
+Select dea.continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+, SUM(CONVERT(FLOAT,vac.new_vaccinations)) OVER (Partition by dea.Location Order by dea.location, dea.Date) as RollingPeopleVaccinated
+--, (RollingPeopleVaccinated/population)*100
+From portafolioprojectcovid..covidD dea
+Join portafolioprojectcovid..covidV vac
+	On dea.location = vac.location
+	and dea.date = vac.date
+where dea.continent is not null 
+and dea.location = 'Colombia'
+
+--order by 2,3
+)
+Select *, (RollingPeopleVaccinated/Population)*100 as PercentPeopleVaccinated
+From PopvsVac
+where date ='2022-10-17 00:00:00.000'
+order by 3 desc
+
