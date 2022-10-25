@@ -2,7 +2,7 @@
 
 -- Total cases vs Deaths in COLOMBIA
 
-SELECT  location, date, total_deaths,  total_cases ,population,(total_deaths/total_cases)*100 as Deathpercentage
+SELECT  location, CAST( date AS Date) as date, total_deaths,  total_cases ,population,(total_deaths/total_cases)*100 as Deathpercentage
 FROM portafolioprojectcovid..covidD
 WHERE location = 'Colombia'
 and  date ='2022-10-17 00:00:00.000'
@@ -10,7 +10,7 @@ ORDER BY  2 DESC
 
 --Cases vs population
 
-SELECT  location, date,population, total_cases ,(total_cases/population)*100 as Cases_pertcentage
+SELECT  location,CAST( date AS Date) as date,population, total_cases ,(total_cases/population)*100 as Cases_pertcentage
 FROM portafolioprojectcovid..covidD
 WHERE location = 'Colombia'
 and  date ='2022-10-17 00:00:00.000'
@@ -35,7 +35,7 @@ order by TotalDeathCount desc
 
 -- Showing contintents with the highest death count per population
 
-Select continent, MAX(cast(Total_deaths as bigint)) as TotalDeathCount
+Select continent, SUM(cast(Total_deaths as bigint)) as TotalDeathCount
 From portafolioprojectcovid..covidD
 Where continent is not null 
 Group by continent
@@ -81,7 +81,7 @@ and dea.location = 'Colombia'
 
 --order by 2,3
 )
-Select *, (RollingPeopleVaccinated/Population)*100 as PercentPeopleVaccinated
+Select *, (RollingPeopleVaccinated/Population)*100 as PercentPeopleVaccinated, CAST( date AS Date) as date
 From PopvsVac
 where date ='2022-10-17 00:00:00.000'
 order by 3 desc
