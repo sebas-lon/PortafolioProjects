@@ -1,5 +1,9 @@
 
-
+Select *
+From portafolioprojectcovid..covidD
+Where continent is not null 
+and location like '%income%'
+order by 3,4
 -- Total cases vs Deaths in COLOMBIA
 
 SELECT  location, CAST( date AS Date) as date, total_deaths,  total_cases ,population,(total_deaths/total_cases)*100 as Deathpercentage
@@ -26,7 +30,7 @@ order by PercentPopulationInfected desc
 
 --  Highest Death Count per Continent
 
-Select Location, SUM(cast(Total_deaths as bigint)) as TotalDeathCount
+Select Location, SUM(cast(new_deaths as int)) as TotalDeathCount
 From portafolioprojectcovid..covidD
 Where continent is not null 
 and location  in ( 'Africa', 'Asia', 'Europe', 'North America', 'Oceania', 'South America')
@@ -46,6 +50,7 @@ order by TotalDeathCount desc
 Select SUM(new_cases) as total_cases, SUM(cast(new_deaths as bigint)) as total_deaths, SUM(cast(new_deaths as bigint))/SUM(New_Cases)*100 as DeathPercentage
 From portafolioprojectcovid..covidD
 where continent is not null 
+and location not in ('World', 'European Union', 'International', 'High income', 'Low income', 'Lower middle income', 'Upper middle income')
 order by 1,2
 
 -- Total Population vs Vaccinations
@@ -86,3 +91,9 @@ From PopvsVac
 where date ='2022-10-17 00:00:00.000'
 order by 3 desc
 
+--
+
+Select location, Population, date, MAX(total_cases) as HighestInfectionCount,  Max((total_cases/population))*100 as PercentPopulationInfected
+From portafolioprojectcovid..covidD
+Group by Location, Population, date
+order by PercentPopulationInfected desc
